@@ -1,7 +1,8 @@
 import 'package:cemear/views/assinatura.dart';
+import 'package:cemear/views/confirmacaoEntrega.dart';
 import 'package:cemear/views/home.dart';
+import 'package:cemear/views/retorno.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   runApp(MaterialApp(
@@ -11,7 +12,9 @@ void main() async {
     ),
     routes: {
       "/":(context) => Home(),
-      "/assinatura":(context) => Assinatura()
+      "/assinatura":(context) => Assinatura(),
+      "/confirmacaoEntrega":(context) => confirmacaoEntrega(),
+      "/retorno":(context) => retorno()
 
     },
   ));

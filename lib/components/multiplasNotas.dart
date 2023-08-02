@@ -43,8 +43,15 @@ class _MultiplasNotasState extends State<MultiplasNotas> {
                         child: Row(
                             children: [
                                 for(String i in valorDoInput.split(",")) 
-                                Container(color: Colors.blue, margin: const EdgeInsets.all(8), 
-                                child: Center(child: Text(i)),
+                                Container(margin: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  borderRadius: BorderRadius.all(Radius.circular(10))
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Center(child: Text(i, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),)),
+                                ),
                                 ),
                             ],
                         )
