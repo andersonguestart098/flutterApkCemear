@@ -13,8 +13,8 @@ void main() async {
     routes: {
       "/":(context) => Home(),
       "/assinatura":(context) => Assinatura(),
-      "/confirmacaoEntrega":(context) => confirmacaoEntrega(),
-      "/retorno":(context) => retorno()
+      "/confirmacaoEntrega":(context) => const ConfirmacaoEntrega(),
+      "/retorno":(context) => const Retorno()
 
     },
   ));

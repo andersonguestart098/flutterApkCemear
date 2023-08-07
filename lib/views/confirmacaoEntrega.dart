@@ -6,15 +6,15 @@ import 'package:signature/signature.dart';
 import '../components/multiplasNotas.dart';
 import "package:http/http.dart" as http;
 
-class confirmacaoEntrega extends StatefulWidget {
+class ConfirmacaoEntrega extends StatefulWidget {
 
-  const confirmacaoEntrega({ super.key });
+  const ConfirmacaoEntrega({ super.key });
 
   @override
-  State<confirmacaoEntrega> createState() => _confirmacaoEntregaState();
+  State<ConfirmacaoEntrega> createState() => _ConfirmacaoEntregaState();
 }
 
-class _confirmacaoEntregaState extends State<confirmacaoEntrega> {
+class _ConfirmacaoEntregaState extends State<ConfirmacaoEntrega> {
   bool desenhado = false;
   final SignatureController assinaturaController = SignatureController(
     exportBackgroundColor: Colors.white,
@@ -22,7 +22,11 @@ class _confirmacaoEntregaState extends State<confirmacaoEntrega> {
     
   );
   final notaFiscalEC = TextEditingController();
-  String? valorDropdown;
+  final obs = TextEditingController();
+  final cidade = TextEditingController();
+  final entregaConcluida = TextEditingController();
+  String? valorDropdownEntrega;
+  String? dropDownmotorista;
 
   @override
     void dispose() {
@@ -67,11 +71,12 @@ class _confirmacaoEntregaState extends State<confirmacaoEntrega> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         border: OutlineInputBorder()
                       ),
-                      value: valorDropdown,
-                      hint: Text("Motorista"),
+                      
+                      value: dropDownmotorista,
+                      hint: const Text("Motorista"),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Preencha o campo motorista";
@@ -97,24 +102,24 @@ class _confirmacaoEntregaState extends State<confirmacaoEntrega> {
                       ],
                       onChanged: (String? value) { // Especifique o tipo do parâmetro onChanged como String?
                         setState(() {
-                          valorDropdown = value!;
+                          dropDownmotorista = value!;
                         });
                       },
                     ),
                   ),
 
 
-                   Padding(
+                Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
-                    decoration: InputDecoration(
+                    controller: cidade,
+                    decoration: const InputDecoration(
                       labelText: "Digite a cidade",
                       border: OutlineInputBorder(),
                     ),
-                    
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Preencha o campo do motorista";
+                      if(value != null && value.isEmpty){
+                        return "Digite a cidade";
                       }
                       return null;
                     },
@@ -125,11 +130,11 @@ class _confirmacaoEntregaState extends State<confirmacaoEntrega> {
                 Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         border: OutlineInputBorder()
                       ),
-                      value: valorDropdown,
-                      hint: Text("entregaConcluida"),
+                      value: valorDropdownEntrega,
+                      hint: const Text("entregaConcluida"),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Entrega foi concluida?";
@@ -143,7 +148,7 @@ class _confirmacaoEntregaState extends State<confirmacaoEntrega> {
                       ],
                       onChanged: (String? value) { // Especifique o tipo do parâmetro onChanged como String?
                         setState(() {
-                          valorDropdown = value!;
+                          valorDropdownEntrega = value!;
                         });
                       },
                     ),
@@ -153,7 +158,8 @@ class _confirmacaoEntregaState extends State<confirmacaoEntrega> {
                   Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
-                    decoration: InputDecoration(
+                    controller: obs,
+                    decoration: const InputDecoration(
                       labelText: "Observações",
                       border: OutlineInputBorder(),
                     ),
@@ -163,19 +169,28 @@ class _confirmacaoEntregaState extends State<confirmacaoEntrega> {
                   Padding(
                     padding: const EdgeInsets.all(8.0), 
                     child: ElevatedButton(onPressed: () async {
-                      if (formKey.currentState!.validate() && desenhado) {
-                          final base64 = await assinaturaController.toPngBytes();
-                          final imageBase64 = "data:image/png;base64,${base64Encode(base64!)}";
+                      if (formKey.currentState!.validate()) {
+
                           final List<String> valorNotaFiscal = notaFiscalEC.text.split(",");
                           for(String i in valorNotaFiscal) {
                             final String valorSemEspaco = i.trim();
                             if (valorSemEspaco.isNotEmpty) {
-                              await http.post(Uri.parse("https://cemear-api.vercel.app/registrarAssinatura"), 
-                              body: {
-                                "notaFiscal": valorSemEspaco,
-                                "responsavel": valorDropdown,
-                                "assinatura_img": imageBase64
-                              });
+                            final response = await http.get(Uri.parse("https://cemear-api.vercel.app"));
+                              final data =jsonDecode(response.body);
+                              final String url = data["url"];
+                            await http.post(Uri.parse(url),
+                                headers: {
+                                  "ngrok-skip-browser-warning": "69420",
+                                }, 
+                                body: {
+                                  "notaFiscal": valorSemEspaco,
+                                  "motorista": dropDownmotorista,
+                                  "cidade": cidade.text,
+                                  "entregaConcluida": valorDropdownEntrega,
+                                  "obs": obs.text.isEmpty ? "Nenhuma observação" : obs.text,
+                                  
+                                  "setor": "confirmacao entrega",
+                                });
                             }
                           }
                           }else {

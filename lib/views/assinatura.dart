@@ -67,11 +67,11 @@ class _AssinaturaState extends State<Assinatura> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         border: OutlineInputBorder()
                       ),
                       value: valorDropdown,
-                      hint: Text("Responsável"),
+                      hint: const Text("Responsável"),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Preencha o campo responsável";
@@ -97,8 +97,8 @@ class _AssinaturaState extends State<Assinatura> {
                     ),
                   ),
 
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
                     child: Text("Sua Assinatura:"),
                   ),
 
@@ -120,12 +120,20 @@ class _AssinaturaState extends State<Assinatura> {
                           for(String i in valorNotaFiscal) {
                             final String valorSemEspaco = i.trim();
                             if (valorSemEspaco.isNotEmpty) {
-                              await http.post(Uri.parse("https://cemear-api.vercel.app/registrarAssinatura"), 
-                              body: {
-                                "notaFiscal": valorSemEspaco,
-                                "responsavel": valorDropdown,
-                                "assinatura_img": imageBase64
-                              });
+                              final response = await http.get(Uri.parse("https://cemear-api.vercel.app"));
+                              final data =jsonDecode(response.body);
+                              final String url = data["url"];
+
+                              await http.post(Uri.parse(url),
+                                headers: {
+                                  "ngrok-skip-browser-warning": "69420",
+                                }, 
+                                body: {
+                                  "notaFiscal": valorSemEspaco,
+                                  "responsavel": valorDropdown,
+                                  "assinatura_img": imageBase64,
+                                  "setor": "assinatura",
+                                });
                             }
                           }
                           }else {
