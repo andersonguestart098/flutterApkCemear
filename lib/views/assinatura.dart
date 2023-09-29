@@ -23,6 +23,7 @@ class _AssinaturaState extends State<Assinatura> {
   );
   final notaFiscalEC = TextEditingController();
   String? valorDropdown;
+  bool isLoading = false;
 
   @override
     void dispose() {
@@ -86,7 +87,7 @@ class _AssinaturaState extends State<Assinatura> {
                         DropdownMenuItem<String>(value: "Max", child: Text("Max")),
                         DropdownMenuItem<String>(value: "Matheus", child: Text("Matheus")),
                         DropdownMenuItem<String>(value: "Manoel", child: Text("Manoel")),
-                        DropdownMenuItem<String>(value: "Eduardo", child: Text("Eduardo")),
+                        DropdownMenuItem<String>(value: "Eduardo M.", child: Text("Eduardo M.")),
                         DropdownMenuItem<String>(value: "Everton", child: Text("Everton"))
                       ],
                       onChanged: (String? value) { // Especifique o tipo do parâmetro onChanged como String?
@@ -112,8 +113,14 @@ class _AssinaturaState extends State<Assinatura> {
                   
                   Padding(
                     padding: const EdgeInsets.all(8.0), 
-                    child: ElevatedButton(onPressed: () async {
+                    child: ElevatedButton(
+                      onPressed: isLoading ?
+                        (){} :
+                      () async {
                       if (formKey.currentState!.validate() && desenhado) {
+                        setState(() {
+                          isLoading = true;
+                        });
                           final base64 = await assinaturaController.toPngBytes();
                           final imageBase64 = "data:image/png;base64,${base64Encode(base64!)}";
                           final List<String> valorNotaFiscal = notaFiscalEC.text.split(",");
@@ -136,10 +143,32 @@ class _AssinaturaState extends State<Assinatura> {
                                 });
                             }
                           }
+                                assinaturaController.clear();
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                backgroundColor: Colors.green,
+                                content: Row(
+                                  children: [
+                                    Icon(Icons.check_circle, color: Colors.white),
+                                    Text("Enviado com sucesso!", style: TextStyle(
+                                      color: Colors.white
+                                    )),
+                                  ],
+                                )));
+                                setState(() {
+                                  valorDropdown = "";
+                                  notaFiscalEC.text="";
+                                  isLoading = false;
+                                });
                           }else {
-                            ScaffoldMessenger.of(context).showSnackBar( const SnackBar(content: Text("PREENCHA TODOS OS CAMPOS POR FAVOR!")));
+                            ScaffoldMessenger.of(context).showSnackBar( const SnackBar(
+                              backgroundColor: Colors.red,
+                              content: Text("PREENCHA TODOS OS CAMPOS POR FAVOR!", style: TextStyle(
+                                color: Colors.white
+                              ),)));
                           }
-                    }, child: const Text("Enviar"),),
+                    }, child: !isLoading ? const Text("Enviar") : const CircularProgressIndicator(
+                      color: Colors.white,
+                    ),),
                   ),
                 ],
               ),

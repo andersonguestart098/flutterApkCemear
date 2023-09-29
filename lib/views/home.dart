@@ -49,6 +49,16 @@ class Home extends StatelessWidget {
                     onPressed: (){
                     Navigator.of(context).pushNamed("/retorno");
                   }, child: Text("Retorno")),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      fixedSize: Size(200, 50)
+                    ),
+                    onPressed: (){
+                    Navigator.of(context).pushNamed("/saida");
+                  }, child: Text("Saida")),
                 )
 
 

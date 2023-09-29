@@ -1,10 +1,14 @@
+
 import 'package:cemear/views/assinatura.dart';
 import 'package:cemear/views/confirmacaoEntrega.dart';
 import 'package:cemear/views/home.dart';
 import 'package:cemear/views/retorno.dart';
+import 'package:cemear/views/saida.dart';
 import 'package:flutter/material.dart';
 
 void main() async {
+
+  
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: ThemeData(
@@ -14,8 +18,8 @@ void main() async {
       "/":(context) => Home(),
       "/assinatura":(context) => Assinatura(),
       "/confirmacaoEntrega":(context) => const ConfirmacaoEntrega(),
-      "/retorno":(context) => const Retorno()
-
+      "/retorno":(context) => const Retorno(),
+      "/saida":(context) => const Saida()
     },
   ));
 }

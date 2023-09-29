@@ -1,10 +1,12 @@
+import 'package:http_parser/http_parser.dart';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:signature/signature.dart';
-
 import '../components/multiplasNotas.dart';
 import "package:http/http.dart" as http;
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+
 
 class ConfirmacaoEntrega extends StatefulWidget {
 
@@ -15,37 +17,33 @@ class ConfirmacaoEntrega extends StatefulWidget {
 }
 
 class _ConfirmacaoEntregaState extends State<ConfirmacaoEntrega> {
-  bool desenhado = false;
-  final SignatureController assinaturaController = SignatureController(
-    exportBackgroundColor: Colors.white,
-    strokeCap: StrokeCap.round,
-    
-  );
   final notaFiscalEC = TextEditingController();
   final obs = TextEditingController();
   final cidade = TextEditingController();
   final entregaConcluida = TextEditingController();
   String? valorDropdownEntrega;
+  List<String?> imagemPath = [];
   String? dropDownmotorista;
+    bool isLoading = false;
 
-  @override
-    void dispose() {
-      // TODO: implement dispose
-      super.dispose();
-      assinaturaController.dispose();
-    }
 
+final ImagePicker imagePicker = ImagePicker();
+      List<XFile>? imageFileList = [];
+
+      void selectImages() async {
+         final List<XFile> selectedImages = await 
+                imagePicker.pickMultiImage();
+           if (selectedImages.isNotEmpty) {
+              imageFileList!.addAll(selectedImages);
+           }
+          setState((){});
+      }
+      
 
    @override
    Widget build(BuildContext context) {
     final formKey = GlobalKey<FormState>();
-
-    setState(() {
-          assinaturaController.onDrawStart = () {
-              desenhado = true;
-    };
-        });
-    
+     
     
        return Scaffold(
            appBar: AppBar(title: const Text('Confirmação de Entrega'),),
@@ -65,9 +63,31 @@ class _ConfirmacaoEntregaState extends State<ConfirmacaoEntrega> {
                       if (!RegExp(r'^[\d,]+$').hasMatch(valor)) {
                                return "Use Apenas Números e vírgula";
                       }
-
+           
                       return null;
                   }, controller: notaFiscalEC,),
+                  ElevatedButton(
+                     onPressed: () {
+                       selectImages();
+                   },
+                  child: Text('Select Images'),
+                      ),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: imageFileList?.map((imageFile) {
+                        return Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Image.file(
+                            File(imageFile.path),
+                            fit: BoxFit.cover,
+                            width: 140,
+                            height: 140,
+                          ),
+                        );
+                      }).toList() ?? [],
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: DropdownButtonFormField<String>(
@@ -107,8 +127,8 @@ class _ConfirmacaoEntregaState extends State<ConfirmacaoEntrega> {
                       },
                     ),
                   ),
-
-
+           
+           
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
@@ -125,8 +145,8 @@ class _ConfirmacaoEntregaState extends State<ConfirmacaoEntrega> {
                     },
                   ),
                 ),
-
-
+           
+           
                 Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: DropdownButtonFormField<String>(
@@ -153,8 +173,8 @@ class _ConfirmacaoEntregaState extends State<ConfirmacaoEntrega> {
                       },
                     ),
                   ),
-
-
+           
+           
                   Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
@@ -165,44 +185,113 @@ class _ConfirmacaoEntregaState extends State<ConfirmacaoEntrega> {
                     ),
                   ),
                 ),
-                  
+
                   Padding(
                     padding: const EdgeInsets.all(8.0), 
                     child: ElevatedButton(onPressed: () async {
-                      if (formKey.currentState!.validate()) {
 
+                      if (formKey.currentState!.validate() && imageFileList != null) {
+                        var data = "";
                           final List<String> valorNotaFiscal = notaFiscalEC.text.split(",");
+                              final String url = "https://039e-187-44-94-26.ngrok-free.app/api/methodsdatabase/create"; // data["url"];
+                          
+                              final dateNoFormated = DateTime.now();
+                              final date = "${dateNoFormated.day}${dateNoFormated.month}${dateNoFormated.year}${dateNoFormated.hour}${dateNoFormated.minute}${dateNoFormated.second}";
+                              var arrDateNameFile = [];
+
+                              final String apiUrl = 'https://039e-187-44-94-26.ngrok-free.app/api/methodsdatabase/imagecreate?name=$date&setor=confirmacaoEntrega';
+
+                              
+                              var request = http.MultipartRequest('POST', Uri.parse(apiUrl));
+                              request.headers['ngrok-skip-browser-warning'] = '69420';
+
+                              var count = 1;
+                              for (XFile imageFile in imageFileList!) {
+                                arrDateNameFile.add("${date}_$count.png");
+                                final File file = File(imageFile.path);
+                                final String fileName = file.path.split('/').last;
+
+                                request.files.add(
+                                  await http.MultipartFile.fromPath(
+                                    'files', 
+                                    file.path,
+                                    filename: fileName,
+                                    contentType:  MediaType("image", "png")
+                                  ),
+                                );
+                                count++;
+                              }
+
+                              var responseImg = await request.send();
+
+                              if (responseImg.statusCode == 200) {
+                                print('Imagens enviadas com sucesso.');
+                              } else {
+                                print('Erro ao enviar imagens. Código de status: ${responseImg.statusCode}');
+                              }
+
+
                           for(String i in valorNotaFiscal) {
                             final String valorSemEspaco = i.trim();
                             if (valorSemEspaco.isNotEmpty) {
-                            final response = await http.get(Uri.parse("https://cemear-api.vercel.app"));
-                              final data =jsonDecode(response.body);
-                              final String url = data["url"];
+                              final response = await http.get(Uri.parse("https://cemear-api.vercel.app"));
+
+                      if (response.statusCode == 200) {
+                        print(response.body);
+                      } else {
+                        // Trate os possíveis códigos de erro aqui, por exemplo:
+                        print("Erro na requisição: ${response.statusCode}");
+                        print("Resposta: ${response.body}");
+                      }
+           
                             await http.post(Uri.parse(url),
                                 headers: {
                                   "ngrok-skip-browser-warning": "69420",
-                                }, 
+                                },
                                 body: {
                                   "notaFiscal": valorSemEspaco,
-                                  "motorista": dropDownmotorista,
+                                  "motorista": dropDownmotorista ?? "",
                                   "cidade": cidade.text,
-                                  "entregaConcluida": valorDropdownEntrega,
+                                  "images": arrDateNameFile.toString().replaceAll("[","").replaceAll("]",""),
+                                  "entregaConcluida": valorDropdownEntrega ?? "",
                                   "obs": obs.text.isEmpty ? "Nenhuma observação" : obs.text,
-                                  
                                   "setor": "confirmacao entrega",
                                 });
-                            }
-                          }
+
+                                  }
+                                }
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                  backgroundColor: Colors.green,
+                                  content: Row(
+                                    children: [
+                                      Icon(Icons.check_circle, color: Colors.white),
+                                      Text("Enviado com sucesso!", style: TextStyle(
+                                        color: Colors.white
+                                      ),),
+                                    ],
+                                  )));
+                                setState(() {
+                                  dropDownmotorista = "";
+                                  valorDropdownEntrega = "";
+                                   notaFiscalEC.text="";
+                                   cidade.text="";
+                                   obs.text = "";
+                                   isLoading = false;
+                                });
                           }else {
-                            ScaffoldMessenger.of(context).showSnackBar( const SnackBar(content: Text("PREENCHA TODOS OS CAMPOS POR FAVOR!")));
+                            ScaffoldMessenger.of(context).showSnackBar( const SnackBar(
+                              backgroundColor: Colors.red,
+                              content: Text("PREENCHA TODOS OS CAMPOS POR FAVOR!", style: TextStyle(
+                                color: Colors.white
+                              ),)));
                           }
-                    }, child: const Text("Enviar"),),
+                    }, child: const Text("Enviar")),
                   ),
                 ],
               ),
              ),
            ),
-       )
+        )
        );
   }
 }

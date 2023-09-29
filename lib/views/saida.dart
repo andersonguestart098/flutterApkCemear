@@ -4,21 +4,25 @@ import 'package:flutter/material.dart';
 import "package:http/http.dart" as http;
 import '../components/multiplasNotas.dart';
 
-class Retorno extends StatefulWidget {
-  const Retorno({ super.key });
+class Saida extends StatefulWidget {
+  const Saida({ super.key });
 
   @override
-  State<Retorno> createState() => _RetornoState();
+  State<Saida> createState() => _SaidaState();
 }
 
-class _RetornoState extends State<Retorno> {
+class _SaidaState extends State<Saida> {
   final notaFiscalEC = TextEditingController();
   final hodometroEC = TextEditingController();
   final obsEC = TextEditingController();
+  final codEntrega = TextEditingController();
+  final cidade = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
 
   String valorDropdownPlaca = "";
+  String valorDropdownConferente = "";
+  String valorDropdownMotorista = "";
   DateTime? dataSelect;
   bool isLoading = false;
 
@@ -33,12 +37,23 @@ class _RetornoState extends State<Retorno> {
    Widget build(BuildContext context) {
 
        return Scaffold(
-           appBar: AppBar(title: const Text('Retorno'),),
+           appBar: AppBar(title: const Text('Carregamento do caminhão'),),
            body: Form(
             key: formKey,
             child: SingleChildScrollView(
               child: Column(
                 children: [
+                  
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextFormField(
+                      controller: codEntrega,
+                      decoration: const InputDecoration(
+                        labelText: "Código da entrega",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
                   MultiplasNotas(
                   label: "Nota Fiscal",
                   validador: (valor) {
@@ -57,6 +72,40 @@ class _RetornoState extends State<Retorno> {
                     padding: const EdgeInsets.all(8.0),
                     child: DropdownButtonFormField<String>(
                       decoration: const InputDecoration(
+                        labelText: "Conferente:",
+                        border: OutlineInputBorder()
+                      ),
+                      
+                      value: valorDropdownConferente,
+                      hint: const Text("Conferente:"),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Preencha o campo conferente";
+                        }
+                        return null;
+                      },
+                      items: const [
+                        DropdownMenuItem<String>(value: "", enabled: false, child: Text("")),
+                        DropdownMenuItem<String>(value: "MAX", child: Text("MAX")),
+                        DropdownMenuItem<String>(value: "EVERTON", child: Text("EVERTON")),
+                        DropdownMenuItem<String>(value: "EDUARDO", child: Text("EDUARDO")),
+                        DropdownMenuItem<String>(value: "CRISTIANO D.", child: Text("CRISTIANO D")),
+                        DropdownMenuItem<String>(value: "MATHEUS", child: Text("MATHEUS")),
+                        DropdownMenuItem<String>(value: "MANOEL", child: Text("MANOEL"))
+                      ],
+                      onChanged: (String? value) {
+                        setState(() {
+                          valorDropdownConferente = value!;
+                        });
+                      },
+                    ),
+                  ),
+                  
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        labelText: "Placa:",
                         border: OutlineInputBorder()
                       ),
                       value: valorDropdownPlaca,
@@ -91,6 +140,46 @@ class _RetornoState extends State<Retorno> {
                       },
                     ),
                   ),
+                  
+
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        labelText: "Motorista:",
+                        border: OutlineInputBorder()
+                      ),
+                      value: valorDropdownMotorista,
+                      hint: const Text("Motorista"),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Preencha o campo responsável";
+                        }
+                        return null;
+                      },
+                      items: const [
+                        DropdownMenuItem<String>(value: "", enabled: false, child: Text("")),
+                        DropdownMenuItem<String>(value: "DIONATHA", child: Text("DIONATHA")),
+                        DropdownMenuItem<String>(value: "DOUGLAS", child: Text("DOUGLAS")),
+                        DropdownMenuItem<String>(value: "IGON", child: Text("IGON")),
+                        DropdownMenuItem<String>(value: "JULIANO", child: Text("JULIANO")),
+                        DropdownMenuItem<String>(value: "MATHEUS", child: Text("MATHEUS")),
+                        DropdownMenuItem<String>(value: "PAULO ALEXANDRE", child: Text("PAULO ALEXANDRE")),
+                        DropdownMenuItem<String>(value: "VANDERLEI", child: Text("VANDERLEI")),
+                        DropdownMenuItem<String>(value: "VILNEI", child: Text("VILNEI")),
+                        DropdownMenuItem<String>(value: "MAX", child: Text("MAX")),
+                        DropdownMenuItem<String>(value: "CRISTIANO", child: Text("CRISTIANO")),
+                        DropdownMenuItem<String>(value: "WILLIAM", child: Text("WILLIAM"))
+                      ],
+                      onChanged: (String? value) {
+                        setState(() {
+                          valorDropdownMotorista = value!;
+                        });
+                      },
+                    ),
+                  ),
+
+
                   Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
@@ -107,19 +196,30 @@ class _RetornoState extends State<Retorno> {
                     },
                   ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    var dataSelecionada = await showDatePicker(
-                      context: context, 
-                      initialDate: DateTime.now(), 
-                      firstDate: DateTime.now(), 
-                      lastDate: DateTime(3000),
-                    );
-                    setState(() {
-                      dataSelect = dataSelecionada;
-                    });
-                  }, 
-                icon: const Icon(Icons.date_range), label: const Text("Selecione uma Data")),
+
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    controller: cidade,
+                    decoration: const InputDecoration(
+                      labelText: "Cidade(s) Destino",
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value != null && value.isEmpty) {
+                        return "Preencha a cidade destino";
+                      }                    
+                      return null;
+                    },
+                  ),
+                ),
+
+                ElevatedButton.icon(onPressed: (){
+
+
+                }, icon: Icon(Icons.photo_camera), label: Text("Foto")),
+
+               
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
@@ -152,11 +252,14 @@ class _RetornoState extends State<Retorno> {
                                 }, 
                                 body: {
                                   "notaFiscal": valorSemEspaco,
+                                  "conferente": valorDropdownConferente,
                                   "placa": valorDropdownPlaca,
+                                  "motorista": valorDropdownMotorista,
                                   "hodometro": hodometroEC.text,
+                                  "cidade": cidade.text,
                                   "data": dataSelect.toString(),
                                   "obs": obsEC.text.isEmpty ? "Nenhuma observação" : obsEC.text,
-                                  "setor": "retorno"
+                                  "setor": "saida"
                                 });
 
                             }
