@@ -25,6 +25,7 @@ class _ConfirmacaoEntregaState extends State<ConfirmacaoEntrega> {
   List<String?> imagemPath = [];
   String? dropDownmotorista;
     bool isLoading = false;
+    String url = "";
 
 
 final ImagePicker imagePicker = ImagePicker();
@@ -38,7 +39,8 @@ final ImagePicker imagePicker = ImagePicker();
            }
           setState((){});
       }
-      
+
+     
 
    @override
    Widget build(BuildContext context) {
@@ -189,18 +191,19 @@ final ImagePicker imagePicker = ImagePicker();
                   Padding(
                     padding: const EdgeInsets.all(8.0), 
                     child: ElevatedButton(onPressed: () async {
-
-                      if (formKey.currentState!.validate() && imageFileList != null) {
-                        var data = "";
-                          final List<String> valorNotaFiscal = notaFiscalEC.text.split(",");
-                              final String url = "https://039e-187-44-94-26.ngrok-free.app/api/methodsdatabase/create"; // data["url"];
+                    if (formKey.currentState!.validate() && imageFileList != null) {
+                          final response = await http.get(Uri.parse("https://pastebin.com/raw/MjGcv5Q7"));
+                          final dataRes =jsonDecode(response.body);
+                          final String urlNgrok = dataRes["url"];
+                          var data = "";
+                          
+                              final String url = urlNgrok; 
                           
                               final dateNoFormated = DateTime.now();
                               final date = "${dateNoFormated.day}${dateNoFormated.month}${dateNoFormated.year}${dateNoFormated.hour}${dateNoFormated.minute}${dateNoFormated.second}";
                               var arrDateNameFile = [];
-
-                              final String apiUrl = 'https://039e-187-44-94-26.ngrok-free.app/api/methodsdatabase/imagecreate?name=$date&setor=confirmacaoEntrega';
-
+                              
+                              final String apiUrl = '${urlNgrok}image?name=$date&setor=confirmacaoEntrega';
                               
                               var request = http.MultipartRequest('POST', Uri.parse(apiUrl));
                               request.headers['ngrok-skip-browser-warning'] = '69420';
@@ -229,20 +232,12 @@ final ImagePicker imagePicker = ImagePicker();
                               } else {
                                 print('Erro ao enviar imagens. Código de status: ${responseImg.statusCode}');
                               }
-
-
+  
+                          final List<String> valorNotaFiscal = notaFiscalEC.text.split(",");
                           for(String i in valorNotaFiscal) {
                             final String valorSemEspaco = i.trim();
                             if (valorSemEspaco.isNotEmpty) {
-                              final response = await http.get(Uri.parse("https://cemear-api.vercel.app"));
-
-                      if (response.statusCode == 200) {
-                        print(response.body);
-                      } else {
-                        // Trate os possíveis códigos de erro aqui, por exemplo:
-                        print("Erro na requisição: ${response.statusCode}");
-                        print("Resposta: ${response.body}");
-                      }
+                            
            
                             await http.post(Uri.parse(url),
                                 headers: {
@@ -277,6 +272,7 @@ final ImagePicker imagePicker = ImagePicker();
                                    cidade.text="";
                                    obs.text = "";
                                    isLoading = false;
+                                   imageFileList = [];
                                 });
                           }else {
                             ScaffoldMessenger.of(context).showSnackBar( const SnackBar(
@@ -295,3 +291,5 @@ final ImagePicker imagePicker = ImagePicker();
        );
   }
 }
+
+
